@@ -47,8 +47,6 @@ services:
     command: redis-server --save 20 1 --loglevel warning
     volumes: 
       - cache:/data
-    expose: 
-      - 6379:6379
     networks: 
       - caching
 
