@@ -5,6 +5,60 @@ This is a containerized template for Denco projects using redis caching.
 ### Prerequisites: 
 - Docker
 
+### Project Structure 
+```
+.
+├── goserver
+│   ├── Dockerfile
+│   ├── go.mod
+│   ├── go.sum
+│   └── server.go
+├── docker-compose.yaml
+└── README.md
+```
+
+### [`docker-compose.yaml`](docker-compose.yaml)
+```
+version: "3.8"
+
+services:
+  denco: 
+    container_name: denco
+    image: j000000/denco-redis:latest
+    build: 
+      context: ./goserver
+      args:
+        - DENCOPORT=8080
+    networks:
+      - caching
+    ports: 
+      - 8080:8080
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - DENCOPORT=8080
+
+  redis: 
+    image: redis:latest
+    container_name: redis
+    restart: always 
+    command: redis-server --save 20 1 --loglevel warning
+    volumes: 
+      - cache:/data
+    expose: 
+      - 6379:6379
+    networks: 
+      - caching
+
+volumes:
+  cache:
+    driver: local
+
+networks:
+  caching:
+```
 
 ### Usage
 ```
