@@ -1,4 +1,4 @@
-ARG DENCOPORT=8080
+ARG DENCO_PORT=8080
 FROM golang:latest
 
 WORKDIR /usr/src/app
@@ -9,6 +9,5 @@ COPY server.go ./
 RUN go mod download && go mod verify
 
 RUN go build -v -o /usr/local/bin/app ./...
-
-EXPOSE ${DENCOPORT}
+#EXPOSE ${DENCO_PORT}
 CMD ["app"]

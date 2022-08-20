@@ -1,5 +1,5 @@
 # Denco + Redis = <3
-This is a containerized template for Denco projects using redis caching. 
+This is a containerized template for Denco projects using redis caching behing an nginx proxy.
 
 
 ### Prerequisites: 
@@ -13,6 +13,9 @@ This is a containerized template for Denco projects using redis caching.
 │   ├── go.mod
 │   ├── go.sum
 │   └── server.go
+├── nginx
+│   ├── Dockerfile
+│   └── nginx.conf
 ├── docker-compose.yaml
 └── README.md
 ```
@@ -22,33 +25,62 @@ This is a containerized template for Denco projects using redis caching.
 version: "3.8"
 
 services:
-  denco: 
+  denco:
     container_name: denco
     image: j000000/denco-redis:latest
-    build: 
+    build:
       context: ./goserver
       args:
-        - DENCOPORT=8080
+        - DENCO_PORT=80
     networks:
       - caching
-    ports: 
-      - 8080:8080
     depends_on:
       - redis
     environment:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - DENCOPORT=8080
+      - DENCO_PORT=8080
 
-  redis: 
+    healthcheck:
+      test: ["CMD", "curl", "-fsSL", "http://localhost:8080"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  nginx:
+    container_name: proxy
+    build:
+      context: ./nginx
+      args:
+        - NGINX_PORT=80
+    restart: always
+    networks:
+      - caching
+    depends_on:
+      - denco
+      - redis
+    ports:
+      - 80:80
+    healthcheck:
+      test: ["CMD", "curl", "-fsSL", "http://localhost/"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+
+  redis:
     image: redis:latest
     container_name: redis
-    restart: always 
+    restart: always
     command: redis-server --save 20 1 --loglevel warning
-    volumes: 
+    volumes:
       - cache:/data
-    networks: 
+    networks:
       - caching
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
 
 volumes:
   cache:
@@ -67,10 +99,10 @@ docker compose up -d --build
 
 Expected Result: 
 ```
-> docker ps
-CONTAINER ID   IMAGE                        COMMAND                  CREATED          STATUS          PORTS                    NAMES
-17372fe978af   j000000/denco-redis:latest   "app"                    13 seconds ago   Up 11 seconds   0.0.0.0:8080->8080/tcp   denco
-2b18c654bef4   redis:latest                 "docker-entrypoint.s…"   13 seconds ago   Up 12 seconds   0/tcp, 6379/tcp          redis
+CONTAINER ID   IMAGE                        COMMAND                  CREATED          STATUS                            PORTS                NAMES
+48c86288207a   denco-redis_nginx            "/docker-entrypoint.…"   7 seconds ago    Up 2 seconds (health: starting)   0.0.0.0:80->80/tcp   proxy
+22bb88c2f124   j000000/denco-redis:latest   "app"                    8 seconds ago    Up 4 seconds (health: starting)                        denco
+a95710152acf   redis:latest                 "docker-entrypoint.s…"   34 minutes ago   Up 5 seconds (health: starting)   6379/tcp             redis
 ```
 
 

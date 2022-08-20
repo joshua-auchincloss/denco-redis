@@ -11,6 +11,7 @@ import (
 	"time"
 )
 
+// basic func to get environment variable
 func getenv(key string, fallback string) string {
 	value := os.Getenv(key)
 	if len(value) == 0 {
@@ -19,16 +20,18 @@ func getenv(key string, fallback string) string {
 	return value
 }
 
+
 func Index(w http.ResponseWriter, r *http.Request, params denco.Params) {
 	fmt.Fprintf(w, "Redis + Denco!\n")
 }
 
+// gets current site count and returns the value, setting if it does not exist and incrementing upon exit
 func Count(client *redis.Client, ctx context.Context, ttl_s int, w http.ResponseWriter, r *http.Request, params denco.Params) {
 	val, err := client.Get(ctx, "count").Int()
 
 	switch {
 
-	// unset keys return redis.Nil err, not a value. must be caught like this 🥲
+	// unset keys return redis.Nil err, not a value
 	case err == redis.Nil:
 		fmt.Fprintf(w, "Does not exist... creating.\nset count = 1\n30s TTL")
 		// 1e+9 = s in ns
@@ -41,11 +44,13 @@ func Count(client *redis.Client, ctx context.Context, ttl_s int, w http.Response
 	// compare to same type
 	case val != 0:
 		client.Incr(ctx, "count")
-		fmt.Fprintf(w, "%v", val)
+		fmt.Fprintf(w, "%v", val + 1)
 	}
 }
 
+// checks health of redis cluster
 func checkRedisHealth(client *redis.Client, ctx context.Context) {
+	// test internal connection health
 	fmt.Println("Client: PING")
 	pong, err := client.Do(ctx, "PING").Result()
 
@@ -57,10 +62,10 @@ func checkRedisHealth(client *redis.Client, ctx context.Context) {
 
 func main() {
 	var ctx = context.Background()
-
 	// specified in docker-compose
 	redis_host := getenv("REDIS_HOST", "localhost")
 	redis_port := getenv("REDIS_PORT", "6379")
+	
 	url := fmt.Sprintf("%v:%v", redis_host, redis_port)
 
 	client := redis.NewClient(
@@ -86,7 +91,7 @@ func main() {
 		panic(err)
 	}
 	// specified in docker-compose
-	port := getenv("DENCOPORT", "8080")
+	port := getenv("DENCO_PORT", "8080")
 	serve := fmt.Sprintf(":%v", port)
 
 	log.Fatal(http.ListenAndServe(serve, handler))
