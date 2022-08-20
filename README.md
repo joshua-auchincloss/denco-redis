@@ -99,10 +99,10 @@ docker compose up -d --build
 
 Expected Result: 
 ```
-CONTAINER ID   IMAGE                        COMMAND                  CREATED          STATUS                            PORTS                NAMES
-48c86288207a   denco-redis_nginx            "/docker-entrypoint.…"   7 seconds ago    Up 2 seconds (health: starting)   0.0.0.0:80->80/tcp   proxy
-22bb88c2f124   j000000/denco-redis:latest   "app"                    8 seconds ago    Up 4 seconds (health: starting)                        denco
-a95710152acf   redis:latest                 "docker-entrypoint.s…"   34 minutes ago   Up 5 seconds (health: starting)   6379/tcp             redis
+CONTAINER ID   IMAGE                        COMMAND                  CREATED         STATUS                   PORTS                NAMES
+82dc15b9e9b4   denco-redis_nginx            "/docker-entrypoint.…"   2 minutes ago   Up 2 minutes             0.0.0.0:80->80/tcp   proxy
+fe1ba0d07433   j000000/denco-redis:latest   "app"                    2 minutes ago   Up 2 minutes (healthy)                        denco
+ab1615279d9e   redis:latest                 "docker-entrypoint.s…"   3 minutes ago   Up 2 minutes (healthy)   6379/tcp             redis
 ```
 
 
