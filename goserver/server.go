@@ -33,7 +33,7 @@ func Count(client *redis.Client, ctx context.Context, ttl_s int, w http.Response
 
 	// unset keys return redis.Nil err, not a value
 	case err == redis.Nil:
-		fmt.Fprintf(w, "Does not exist... creating.\nset count = 1\n30s TTL")
+		fmt.Fprintf(w, "Does not exist... creating.\nset count = 1\n%vs TTL", ttl_s)
 		// 1e+9 = s in ns
 		client.Set(ctx, "count", 1, time.Duration(ttl_s*1e+9))
 
@@ -49,15 +49,15 @@ func Count(client *redis.Client, ctx context.Context, ttl_s int, w http.Response
 }
 
 // checks health of redis cluster
-func checkRedisHealth(client *redis.Client, ctx context.Context) {
+func checkRedisHealth(client *redis.Client, ctx context.Context) string {
 	// test internal connection health
-	fmt.Println("Client: PING")
+	log.Println("Client: PING")
 	pong, err := client.Do(ctx, "PING").Result()
-
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Redis:", pong)
+	log.Println("Redis:", pong)
+	return fmt.Sprintf("%v", pong)
 }
 
 func main() {
