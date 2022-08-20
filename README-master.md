@@ -6,87 +6,12 @@ This is a containerized template for Denco projects which use redis caching behi
 
 ### Project Structure 
 ```
-├── docker-compose.yaml
-├── README.md
-├── README-master.md
-├── syncreadme.py
-├── nginx
-│   ├── Dockerfile
-│   └── nginx.conf
-└── goserver
-    ├── go.mod
-    ├── server.go
-    ├── Dockerfile
-    ├── go.sum
-    └── README.md
+{TREE}
 ```
 
 ### [`docker-compose.yaml`](docker-compose.yaml)
 ```
-services:
-  denco:
-    container_name: denco
-    image: j000000/denco-redis:latest
-    build:
-      context: ./goserver
-      args:
-        - DENCO_PORT=80
-    networks:
-      - caching
-    depends_on:
-      - redis
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
-      - DENCO_PORT=8080
-    healthcheck:
-      test: ["CMD", "curl", "-fsSL", "http://localhost:8080"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-
-  nginx:
-    container_name: proxy
-    build:
-      context: ./nginx
-      args:
-        - NGINX_PORT=80
-    restart: always
-    networks:
-      - caching
-    depends_on:
-      - denco
-      - redis
-    ports:
-      - 80:80
-    healthcheck:
-      test: ["CMD", "curl", "-fsSL", "http://localhost/"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:latest
-    container_name: redis
-    restart: always
-    command: redis-server --save 20 1 --loglevel warning
-    volumes:
-      - cache:/data
-    networks:
-      - caching
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 5s
-      retries: 5
-
-volumes:
-  cache:
-    driver: local
-
-networks:
-  caching:
-
+{COMPOSE-FILE}
 ```
 
 ### Usage
