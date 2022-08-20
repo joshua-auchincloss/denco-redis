@@ -1,5 +1,5 @@
 # Denco + Redis = <3
-This is a containerized template for Denco projects using redis caching behing an nginx proxy.
+This is a containerized template for Denco projects which use redis caching behind an nginx proxy.
 
 
 ### Prerequisites: 
