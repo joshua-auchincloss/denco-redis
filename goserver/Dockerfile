@@ -3,11 +3,11 @@ FROM golang:latest
 
 WORKDIR /usr/src/app
 
-# pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
 COPY go.mod go.sum ./
-COPY server.go ./
+COPY ./main.go ./
+COPY ./vendor ./
 RUN go mod download && go mod verify
 
 RUN go build -v -o /usr/local/bin/app ./...
-#EXPOSE ${DENCO_PORT}
+RUN go run /usr/local/go/src/crypto/tls/generate_cert.go --ecdsa-curve P256 --host localhost
 CMD ["app"]

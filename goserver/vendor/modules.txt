@@ -1,0 +1,23 @@
+# github.com/cespare/xxhash/v2 v2.1.2
+## explicit; go 1.11
+github.com/cespare/xxhash/v2
+# github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f
+## explicit
+github.com/dgryski/go-rendezvous
+# github.com/go-redis/redis/v9 v9.0.0-beta.2
+## explicit; go 1.17
+github.com/go-redis/redis/v9
+github.com/go-redis/redis/v9/internal
+github.com/go-redis/redis/v9/internal/hashtag
+github.com/go-redis/redis/v9/internal/hscan
+github.com/go-redis/redis/v9/internal/pool
+github.com/go-redis/redis/v9/internal/proto
+github.com/go-redis/redis/v9/internal/rand
+github.com/go-redis/redis/v9/internal/util
+# github.com/naoina/denco v0.0.0-20180930074809-8475105a6b4c
+## explicit
+github.com/naoina/denco
+# golang.org/x/net v0.0.0-20220722155237-a158d28d115b
+## explicit; go 1.17
+# golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f
+## explicit; go 1.17

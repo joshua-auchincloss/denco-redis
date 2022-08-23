@@ -1,25 +1,17 @@
-package main
+package goserver
 
 import (
 	"context"
+	"crypto/tls"
+	"flag"
 	"fmt"
-	"github.com/go-redis/redis/v9"
-	"github.com/naoina/denco"
 	"log"
 	"net/http"
-	"os"
 	"time"
+	"github.com/joshua-auchincloss/denco-redis/goserver/utils"
+	"github.com/go-redis/redis/v9"
+	"github.com/naoina/denco"
 )
-
-// basic func to get environment variable
-func getenv(key string, fallback string) string {
-	value := os.Getenv(key)
-	if len(value) == 0 {
-		return fallback
-	}
-	return value
-}
-
 
 func Index(w http.ResponseWriter, r *http.Request, params denco.Params) {
 	fmt.Fprintf(w, "Redis + Denco!\n")
@@ -44,7 +36,7 @@ func Count(client *redis.Client, ctx context.Context, ttl_s int, w http.Response
 	// compare to same type
 	case val != 0:
 		client.Incr(ctx, "count")
-		fmt.Fprintf(w, "%v", val + 1)
+		fmt.Fprintf(w, "%v", val+1)
 	}
 }
 
@@ -60,12 +52,16 @@ func checkRedisHealth(client *redis.Client, ctx context.Context) string {
 	return fmt.Sprintf("%v", pong)
 }
 
+
 func main() {
 	var ctx = context.Background()
 	// specified in docker-compose
-	redis_host := getenv("REDIS_HOST", "localhost")
-	redis_port := getenv("REDIS_PORT", "6379")
-	
+	redis_host := utils.getenv("REDIS_HOST", "localhost")
+	redis_port := utils.getenv("REDIS_PORT", "6379")
+
+	certFile := flag.String("certfile", "cert.pem", "certificate PEM file")
+	keyFile := flag.String("keyfile", "key.pem", "key PEM file")
+
 	url := fmt.Sprintf("%v:%v", redis_host, redis_port)
 
 	client := redis.NewClient(
@@ -85,14 +81,31 @@ func main() {
 			// 30 sec TTL, pass other vars from denco (writer, request, params)
 			Count(client, ctx, 30, w, r, params)
 		}),
+		mux.GET("/shouldhide", func(w http.ResponseWriter, r *http.Request, params denco.Params){
+			user, pass, ok := r.BasicAuth()
+			fmt.Sprintf("COOKIES: %v, USER: %v, PASS: %v, OK: %v",r.Cookies(), user, pass, ok)
+			w.Header().Set("WWW-Authenticate", "Invalid Credentials")
+			w.WriteHeader(http.StatusUnauthorized)
+			fmt.Sprintf("RESPONSE: %v", w.Header())
+
+		  }),
 	})
 
 	if err != nil {
 		panic(err)
 	}
 	// specified in docker-compose
-	port := getenv("DENCO_PORT", "8080")
+	port := utils.getenv("DENCO_PORT", "8080")
 	serve := fmt.Sprintf(":%v", port)
 
-	log.Fatal(http.ListenAndServe(serve, handler))
+	srv := &http.Server{
+		Addr:    serve,
+		Handler: handler,
+		TLSConfig: &tls.Config{
+			MinVersion:               tls.VersionTLS13,
+			PreferServerCipherSuites: true,
+		},
+	}
+
+	log.Fatal(srv.ListenAndServeTLS(*certFile, *keyFile))
 }
